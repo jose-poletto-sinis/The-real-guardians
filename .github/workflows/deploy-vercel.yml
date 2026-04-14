@@ -1,1 +1,39 @@
-{"projectId":"prj_gI0tEn1zxGD3QJroDMvuNAx1ohd5","orgId":"team_pYjcIbYGzZsmXaVhavHRvwWK","projectName":"landing-magical-girl-test"}
+name: Deploy to Vercel
+
+on:
+  create:
+  push:
+    branches:
+      - '**'
+
+jobs:
+  deploy:
+    if: github.event_name == 'push' || (github.event_name == 'create' && github.ref_type == 'branch')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Instalar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Instalar Vercel CLI
+        run: npm install -g vercel@latest
+
+      - name: Obtener información del entorno de Vercel
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Build del proyecto
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Deploy a producción en Vercel
+        id: deploy
+        run: |
+          url=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }})
+          echo "deploy_url=$url" >> $GITHUB_OUTPUT
+
+      - name: Mostrar URL del deploy
+        run: echo "Deployed to ${{ steps.deploy.outputs.deploy_url }}"
