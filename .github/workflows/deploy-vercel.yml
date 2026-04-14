@@ -13,8 +13,8 @@ jobs:
 
     env:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-      VERCEL_ORG_ID: team_pYjcIbYGzZsmXaVhavHRvwWK
-      VERCEL_PROJECT_NAME: the-real-guardians
+      MY_ORG_ID: team_pYjcIbYGzZsmXaVhavHRvwWK
+      MY_PROJECT_NAME: the-real-guardians
 
     steps:
       - name: Checkout codigo
@@ -30,20 +30,21 @@ jobs:
 
       - name: Configurar proyecto Vercel
         run: |
-          RESULT=$(curl -s -X POST "https://api.vercel.com/v10/projects?teamId=$VERCEL_ORG_ID" \
+          RESULT=$(curl -s -X POST "https://api.vercel.com/v10/projects?teamId=$MY_ORG_ID" \
             -H "Authorization: Bearer $VERCEL_TOKEN" \
             -H "Content-Type: application/json" \
-            -d "{\"name\":\"$VERCEL_PROJECT_NAME\",\"framework\":\"nextjs\"}")
+            -d "{\"name\":\"$MY_PROJECT_NAME\",\"framework\":\"nextjs\"}")
           PROJECT_ID=$(echo "$RESULT" | jq -r '.id // empty')
           if [ -z "$PROJECT_ID" ]; then
-            RESULT=$(curl -s "https://api.vercel.com/v9/projects/$VERCEL_PROJECT_NAME?teamId=$VERCEL_ORG_ID" \
+            RESULT=$(curl -s "https://api.vercel.com/v9/projects/$MY_PROJECT_NAME?teamId=$MY_ORG_ID" \
               -H "Authorization: Bearer $VERCEL_TOKEN")
             PROJECT_ID=$(echo "$RESULT" | jq -r '.id // empty')
           fi
           echo "Project ID: $PROJECT_ID"
           rm -rf .vercel
           mkdir -p .vercel
-          echo "{\"projectId\":\"$PROJECT_ID\",\"orgId\":\"$VERCEL_ORG_ID\"}" > .vercel/project.json
+          echo "{\"projectId\":\"$PROJECT_ID\",\"orgId\":\"$MY_ORG_ID\"}" > .vercel/project.json
+          cat .vercel/project.json
 
       - name: Pull entorno de Vercel
         run: vercel pull --yes --environment=production --token "$VERCEL_TOKEN"
