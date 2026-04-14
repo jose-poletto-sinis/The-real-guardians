@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Guardianas — Comic Preview</title>
+<style>
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#000; color:#fff; font-family:'Segoe UI',system-ui,sans-serif; overflow-x:hidden; }
+
+  /* ── ANIMATIONS ── */
+  @keyframes chaosFloatA {
+    0%,100%{transform:translateY(0) translateX(0) scale(1);opacity:.6}
+    25%{transform:translateY(-30px) translateX(20px) scale(1.5);opacity:1}
+    50%{transform:translateY(-60px) translateX(-15px) scale(.8);opacity:.3}
+    75%{transform:translateY(-20px) translateX(25px) scale(1.2);opacity:.8}
+  }
+  @keyframes chaosFloatB {
+    0%,100%{transform:translateY(0) translateX(0) rotate(45deg);opacity:.4}
+    33%{transform:translateY(-40px) translateX(-20px) rotate(135deg);opacity:.9}
+    66%{transform:translateY(-80px) translateX(30px) rotate(225deg);opacity:.2}
+  }
+  @keyframes spinSlow { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+  @keyframes vhsFlicker {
+    0%{opacity:.97}5%{opacity:.9}10%{opacity:1}15%{opacity:.85}20%{opacity:.98}
+    50%{opacity:1}80%{opacity:.95}85%{opacity:.88}90%{opacity:1}100%{opacity:.97}
+  }
+  @keyframes scanDown { 0%{top:-10%} 100%{top:110%} }
+  @keyframes introFlash {
+    0%{opacity:0}10%{opacity:1}20%{opacity:0}30%{opacity:.8}50%{opacity:0}55%{opacity:1}100%{opacity:1}
+  }
+  @keyframes shakeX {
+    0%,100%{transform:translateX(0)}10%{transform:translateX(-8px)}20%{transform:translateX(8px)}
+    30%{transform:translateX(-6px)}40%{transform:translateX(6px)}50%{transform:translateX(-4px)}
+    60%{transform:translateX(4px)}70%{transform:translateX(-2px)}80%{transform:translateX(2px)}
+  }
+  @keyframes emergencyPulse {
+    0%,100%{box-shadow:inset 0 0 60px rgba(255,0,0,.1)}
+    50%{box-shadow:inset 0 0 120px rgba(255,0,0,.25)}
+  }
+  @keyframes driftSmoke {
+    0%{transform:translateX(-5%) scaleX(1);opacity:.3}
+    50%{transform:translateX(5%) scaleX(1.1);opacity:.15}
+    100%{transform:translateX(-5%) scaleX(1);opacity:.3}
+  }
+  @keyframes fadeSlideUp {
+    from{opacity:0;transform:translateY(40px)} to{opacity:1;transform:translateY(0)}
+  }
+  @keyframes textReveal { 0%{clip-path:inset(0 100% 0 0)} 100%{clip-path:inset(0 0 0 0)} }
+  @keyframes glitch1 {
+    0%,100%{clip-path:inset(0 0 85% 0);transform:translate(-2px,2px)}
+    25%{clip-path:inset(15% 0 60% 0);transform:translate(2px,-1px)}
+    50%{clip-path:inset(40% 0 30% 0);transform:translate(-3px,1px)}
+    75%{clip-path:inset(70% 0 5% 0);transform:translate(1px,-2px)}
+  }
+  @keyframes glitch2 {
+    0%,100%{clip-path:inset(60% 0 0 0);transform:translate(2px,-2px)}
+    25%{clip-path:inset(30% 0 40% 0);transform:translate(-1px,2px)}
+    50%{clip-path:inset(0 0 70% 0);transform:translate(3px,-1px)}
+    75%{clip-path:inset(45% 0 25% 0);transform:translate(-2px,1px)}
+  }
+  @keyframes shimmerBg { 0%{background-position:-200% center} 100%{background-position:200% center} }
+
+  /* ── PARTICLES ── */
+  .chaos-particle {
+    position:fixed; border-radius:50%; pointer-events:none; z-index:1;
+  }
+
+  /* ── NAV ── */
+  .comic-nav {
+    position:fixed; top:0; left:0; right:0; z-index:100;
+    padding:16px 40px; display:flex; align-items:center; justify-content:space-between;
+    background:linear-gradient(180deg, rgba(0,0,0,.95) 0%, transparent 100%);
+    backdrop-filter:blur(8px);
+  }
+  .comic-nav a { text-decoration:none; }
+  .nav-logo { display:flex; align-items:center; gap:10px; }
+  .nav-logo span { font-weight:800; letter-spacing:.15em; font-size:14px; color:#ff0040; text-shadow:0 0 15px #ff004066; }
+  .nav-back { color:#aaa; font-size:12px; letter-spacing:.12em; border:1px solid #ffffff22; padding:8px 20px; border-radius:4px; transition:all .2s; }
+  .nav-back:hover { color:#ff0040; border-color:#ff004066; }
+
+  /* ── HERO / INTRO ── */
+  .hero-section {
+    position:relative; min-height:100vh; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; text-align:center;
+    padding:120px 20px 60px; z-index:2; overflow:hidden;
+    animation:emergencyPulse 3s ease-in-out infinite;
+  }
+  .hero-bg {
+    position:absolute; inset:0; pointer-events:none;
+    background:
+      radial-gradient(ellipse at 30% 20%, rgba(255,0,64,.15) 0%, transparent 50%),
+      radial-gradient(ellipse at 70% 80%, rgba(199,125,255,.12) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 50%, rgba(80,200,120,.08) 0%, transparent 40%);
+  }
+  .scan-line {
+    position:absolute; left:0; right:0; height:4px;
+    background:linear-gradient(90deg, transparent, rgba(255,255,255,.15), transparent);
+    animation:scanDown 4s linear infinite; pointer-events:none; z-index:10;
+  }
+  .smoke-layer {
+    position:absolute; bottom:0; left:-10%; right:-10%; height:40%;
+    background:linear-gradient(0deg, rgba(0,0,0,.9) 0%, rgba(20,0,30,.4) 50%, transparent 100%);
+    animation:driftSmoke 8s ease-in-out infinite; pointer-events:none;
+  }
+  .emergency-text {
+    font-size:11px; letter-spacing:.5em; color:#ff0040; font-weight:700;
+    text-shadow:0 0 20px #ff0040; animation:vhsFlicker 2s infinite;
+  }
+
+  /* ── GLITCH TITLE ── */
+  .glitch-wrap { position:relative; display:inline-block; }
+  .glitch-main {
+    font-weight:900; font-family:'Impact','Arial Black',sans-serif;
+    letter-spacing:.08em; position:relative; display:inline-block;
+  }
+  .glitch-main.white { color:#fff; text-shadow:0 0 20px #fff, 0 0 60px #fff6, 0 0 100px #fff3; }
+  .glitch-main.red { color:#ff0040; text-shadow:0 0 20px #ff0040, 0 0 60px #ff004066, 0 0 100px #ff004033; }
+  .glitch-clone { position:absolute; top:0; left:0; }
+  .glitch-clone.cyan { color:#0ff; animation:glitch1 .3s infinite linear; opacity:.7; }
+  .glitch-clone.magenta { color:#f0f; animation:glitch2 .3s infinite linear; opacity:.5; }
+
+  .subtitle-reveal { animation:textReveal 1.5s ease-out 1.8s both; }
+  .desc-reveal { animation:fadeSlideUp 1s ease-out 2.2s both; }
+  .dots-reveal { animation:fadeSlideUp 1s ease-out 2.5s both; }
+  .intro-flash { animation:introFlash 2.5s ease-out forwards; }
+  .intro-shake { animation:shakeX .8s ease-in-out 1.5s 1; position:relative; z-index:5; }
+
+  /* ── TRANSITION SECTION ── */
+  .classified-section {
+    position:relative; z-index:2; padding:60px 20px; text-align:center;
+  }
+  .classified-box {
+    max-width:800px; margin:0 auto; padding:40px;
+    background:linear-gradient(135deg, rgba(255,0,64,.06), rgba(199,125,255,.04), rgba(0,0,0,.5));
+    border:1px solid rgba(255,0,64,.15); border-radius:4px; position:relative; overflow:hidden;
+  }
+  .classified-box::after {
+    content:''; position:absolute; inset:0; pointer-events:none;
+    background:linear-gradient(45deg, transparent 40%, rgba(255,0,64,.05) 50%, transparent 60%),
+               linear-gradient(-45deg, transparent 40%, rgba(199,125,255,.05) 50%, transparent 60%);
+  }
+
+  /* ── CHARACTER PANELS ── */
+  .panels-section {
+    position:relative; z-index:2; padding:20px 0 80px;
+  }
+  .panels-section::before {
+    content:''; position:absolute; inset:0; pointer-events:none;
+    background:repeating-linear-gradient(90deg, transparent, transparent 50px, rgba(255,0,64,.02) 50px, rgba(255,0,64,.02) 51px);
+  }
+  .panel-row {
+    display:flex; align-items:center; gap:clamp(20px,4vw,60px);
+    padding:40px clamp(20px,5vw,80px); margin-bottom:60px;
+    opacity:0; transform:translateY(80px) scale(.9);
+    transition:all 1s cubic-bezier(.16,1,.3,1);
+    flex-wrap:wrap; justify-content:center;
+  }
+  .panel-row.visible { opacity:1; transform:translateY(0) scale(1); }
+  .panel-row.reverse { flex-direction:row-reverse; }
+
+  .char-panel {
+    flex:1 1 340px; max-width:500px; min-height:400px; border-radius:4px;
+    position:relative; overflow:hidden; padding:40px 30px;
+    display:flex; flex-direction:column; justify-content:center; align-items:center;
+  }
+  .char-panel .scanlines {
+    position:absolute; inset:0; pointer-events:none; z-index:2;
+    background:repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,.02) 2px, rgba(255,255,255,.02) 4px);
+  }
+  .char-panel .speedlines {
+    position:absolute; inset:0; pointer-events:none;
+  }
+
+  .char-orb {
+    width:120px; height:120px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    margin-bottom:20px; position:relative; z-index:3;
+  }
+  .char-orb span { font-size:48px; font-weight:900; color:#fff; }
+  .char-orb .orbit-ring {
+    position:absolute; inset:-6px; border-radius:50%;
+    border:2px dashed; opacity:.4; animation:spinSlow 8s linear infinite;
+  }
+
+  .char-name {
+    font-size:clamp(28px,5vw,42px); font-weight:900;
+    font-family:'Impact','Arial Black',sans-serif;
+    letter-spacing:.15em; text-align:center; position:relative; z-index:3; margin-bottom:6px;
+  }
+  .char-role {
+    font-size:11px; letter-spacing:.25em; opacity:.8; text-align:center;
+    z-index:3; position:relative; margin-bottom:12px;
+  }
+  .char-quote {
+    font-style:italic; color:#ccc; font-size:13px; text-align:center;
+    z-index:3; position:relative; line-height:1.6;
+  }
+
+  .char-info { flex:1 1 340px; max-width:500px; }
+  .char-info .alias {
+    font-size:10px; letter-spacing:.3em; margin-bottom:10px;
+  }
+  .char-info .desc { font-size:clamp(14px,1.8vw,17px); color:#ccc; line-height:1.9; margin-bottom:24px; }
+  .powers-label { font-size:10px; letter-spacing:.2em; color:#777; margin-bottom:12px; }
+  .power-item {
+    display:flex; align-items:center; gap:10px; padding:8px 14px;
+    border-radius:4px; margin-bottom:8px;
+  }
+  .power-item span.icon { font-size:16px; }
+  .power-item span.text { font-size:13px; font-weight:600; letter-spacing:.05em; color:#ddd; }
+
+  /* ── TEAM FINALE ── */
+  .team-section {
+    position:relative; z-index:2; padding:80px 20px 60px; text-align:center;
+  }
+  .team-box {
+    max-width:900px; margin:0 auto; padding:60px 40px;
+    background:linear-gradient(135deg, rgba(255,0,64,.08), rgba(199,125,255,.06), rgba(80,200,120,.04));
+    border:1px solid rgba(255,255,255,.08); border-radius:4px; position:relative; overflow:hidden;
+  }
+  .team-box::after {
+    content:''; position:absolute; inset:0; border-radius:4px;
+    animation:emergencyPulse 4s ease-in-out infinite; pointer-events:none;
+  }
+  .team-title {
+    font-size:clamp(28px,5vw,52px); font-weight:900;
+    font-family:'Impact','Arial Black',sans-serif;
+    background:linear-gradient(135deg, #ff69b4, #ff2222, #c77dff, #50c878);
+    background-size:300% auto; -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+    margin-bottom:24px; letter-spacing:.06em; animation:shimmerBg 4s linear infinite;
+  }
+  .team-lineup { display:flex; justify-content:center; gap:clamp(16px,3vw,40px); margin-bottom:30px; flex-wrap:wrap; }
+  .team-member { text-align:center; }
+  .team-member .orb {
+    width:clamp(50px,8vw,80px); height:clamp(50px,8vw,80px); border-radius:50%;
+    display:flex; align-items:center; justify-content:center; margin:0 auto 10px;
+  }
+  .team-member .orb span { font-size:clamp(20px,3vw,32px); font-weight:900; color:#fff; }
+  .team-member .name { font-size:11px; font-weight:800; letter-spacing:.1em; }
+  .team-member .sub { font-size:9px; color:#666; letter-spacing:.05em; margin-top:2px; }
+
+  .back-btn {
+    display:inline-block; padding:14px 36px; border-radius:4px;
+    background:linear-gradient(135deg, #ff0040, #cc0030); border:none; color:#fff;
+    font-size:13px; font-weight:700; letter-spacing:.15em; cursor:pointer; text-decoration:none;
+    box-shadow:0 0 30px #ff004066, 0 4px 20px rgba(0,0,0,.5); transition:all .3s ease;
+  }
+  .back-btn:hover { box-shadow:0 0 50px #ff0040aa, 0 8px 30px rgba(0,0,0,.5); transform:translateY(-2px); }
+
+  /* ── FOOTER ── */
+  .comic-footer {
+    position:relative; z-index:2; border-top:1px solid rgba(255,0,64,.15);
+    padding:40px; text-align:center;
+  }
+  .comic-footer p { font-size:11px; letter-spacing:.1em; color:#444; }
+
+  /* ── SCROLL INDICATOR ── */
+  .scroll-down {
+    position:absolute; bottom:40px; left:50%; transform:translateX(-50%);
+    display:flex; flex-direction:column; align-items:center; gap:8px; opacity:.5;
+    animation:fadeSlideUp 1s ease-out 3s both;
+  }
+  .scroll-down span { font-size:10px; letter-spacing:.2em; color:#ff0040; }
+  .scroll-down .line { width:1px; height:40px; background:linear-gradient(180deg, #ff0040, transparent); }
+
+  /* ── LIGHTNING ── */
+  .lightning { position:absolute; opacity:.1; }
+</style>
+</head>
+<body>
+
+<!-- PARTICLES (generated via JS) -->
+<div id="particles"></div>
+
+<!-- NAV -->
+<nav class="comic-nav">
+  <a href="#" class="nav-logo">
+    <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+      <path d="M14 2L16.6 9.9H25L18.7 14.6L21.3 22.5L14 17.8L6.7 22.5L9.3 14.6L3 9.9H11.4Z" fill="#ff0040" style="filter:drop-shadow(0 0 8px #ff0040)"/>
+    </svg>
+    <span>GUARDIANAS · COMIC</span>
+  </a>
+  <a href="#" class="nav-back">← VOLVER</a>
+</nav>
+
+<!-- HERO / INTRO -->
+<section class="hero-section">
+  <div class="hero-bg"></div>
+  <div class="scan-line"></div>
+  <div class="smoke-layer"></div>
+
+  <!-- Lightning bolts -->
+  <svg class="lightning" style="width:60px;top:5%;left:15%" viewBox="0 0 100 300" fill="none">
+    <path d="M50 0 L35 120 L55 115 L20 300 L65 140 L45 145 Z" fill="#ff0040" filter="url(#lg)"/>
+    <defs><filter id="lg"><feGaussianBlur stdDeviation="4"/></filter></defs>
+  </svg>
+  <svg class="lightning" style="width:50px;top:10%;right:20%;transform:scaleX(-1)" viewBox="0 0 100 300" fill="none">
+    <path d="M50 0 L35 120 L55 115 L20 300 L65 140 L45 145 Z" fill="#c77dff" filter="url(#lg2)"/>
+    <defs><filter id="lg2"><feGaussianBlur stdDeviation="4"/></filter></defs>
+  </svg>
+
+  <div class="intro-shake">
+    <div class="intro-flash" style="margin-bottom:20px">
+      <p class="emergency-text">⚠ TRANSMISIÓN DE EMERGENCIA ⚠</p>
+    </div>
+
+    <div style="margin-bottom:24px">
+      <div class="glitch-wrap">
+        <span class="glitch-main white" style="font-size:clamp(28px,5vw,48px)">LAS</span>
+        <span class="glitch-clone cyan" style="font-size:clamp(28px,5vw,48px);font-weight:900;font-family:'Impact','Arial Black',sans-serif;letter-spacing:.08em">LAS</span>
+        <span class="glitch-clone magenta" style="font-size:clamp(28px,5vw,48px);font-weight:900;font-family:'Impact','Arial Black',sans-serif;letter-spacing:.08em">LAS</span>
+      </div>
+      <br/>
+      <div class="glitch-wrap">
+        <span class="glitch-main red" style="font-size:clamp(48px,9vw,110px)">GUARDIANAS</span>
+        <span class="glitch-clone cyan" style="font-size:clamp(48px,9vw,110px);font-weight:900;font-family:'Impact','Arial Black',sans-serif;letter-spacing:.08em">GUARDIANAS</span>
+        <span class="glitch-clone magenta" style="font-size:clamp(48px,9vw,110px);font-weight:900;font-family:'Impact','Arial Black',sans-serif;letter-spacing:.08em">GUARDIANAS</span>
+      </div>
+    </div>
+
+    <div class="subtitle-reveal">
+      <p style="font-size:clamp(12px,2vw,18px);letter-spacing:.4em;color:#c77dff;margin-bottom:30px;font-weight:300;text-shadow:0 0 15px #c77dff88">
+        EL DESTINO SE ROMPE · LA MAGIA SE DESBORDA
+      </p>
+    </div>
+
+    <div class="desc-reveal" style="max-width:650px;margin:0 auto">
+      <p style="font-size:clamp(14px,1.5vw,17px);color:#999;line-height:1.9;margin-bottom:40px">
+        El tejido de la realidad se desgarra. Las estrellas agonizan una por una.
+        Cuatro guerreras son todo lo que queda entre el cosmos y la aniquilación total.
+        Esta es su historia. Este es el final... o el comienzo.
+      </p>
+    </div>
+
+    <div class="dots-reveal" style="display:flex;gap:16px;justify-content:center">
+      <div style="width:12px;height:12px;border-radius:50%;background:#ff69b4;box-shadow:0 0 12px #ff69b4,0 0 24px #ff69b466;animation:chaosFloatA 4s ease-in-out infinite"></div>
+      <div style="width:12px;height:12px;border-radius:50%;background:#ff2222;box-shadow:0 0 12px #ff2222,0 0 24px #ff222266;animation:chaosFloatA 5s ease-in-out infinite"></div>
+      <div style="width:12px;height:12px;border-radius:50%;background:#c77dff;box-shadow:0 0 12px #c77dff,0 0 24px #c77dff66;animation:chaosFloatA 6s ease-in-out infinite"></div>
+      <div style="width:12px;height:12px;border-radius:50%;background:#50c878;box-shadow:0 0 12px #50c878,0 0 24px #50c87866;animation:chaosFloatA 7s ease-in-out infinite"></div>
+    </div>
+  </div>
+
+  <div class="scroll-down">
+    <span>DESCENDER AL CAOS</span>
+    <div class="line"></div>
+  </div>
+</section>
+
+<!-- CLASSIFIED -->
+<section class="classified-section">
+  <div class="classified-box">
+    <p style="font-size:10px;letter-spacing:.4em;color:#ff0040;margin-bottom:16px;position:relative;z-index:1">ARCHIVO CLASIFICADO · NIVEL OMEGA</p>
+    <h2 style="font-size:clamp(24px,4vw,40px);font-weight:900;font-family:'Impact','Arial Black',sans-serif;color:#fff;margin-bottom:16px;letter-spacing:.06em;position:relative;z-index:1">EL ELENCO</h2>
+    <p style="color:#888;font-size:14px;line-height:1.8;max-width:500px;margin:0 auto;position:relative;z-index:1">
+      Cuatro almas marcadas por el caos. Cada una porta un fragmento del poder que mantiene el universo unido. Si caen... todo cae con ellas.
+    </p>
+  </div>
+</section>
+
+<!-- CHARACTER PANELS -->
+<section class="panels-section">
+
+  <!-- ALEX -->
+  <div class="panel-row" data-panel>
+    <div class="char-panel" style="background:linear-gradient(160deg,#2a0012,#4a0025,#1a000d);border:2px solid #ff69b444;clip-path:polygon(2% 0%,98% 3%,100% 97%,1% 100%,5% 55%,0% 50%);box-shadow:0 0 40px #ff149344,0 0 80px #ff149322,0 20px 60px rgba(0,0,0,.8);transform:rotate(-1deg)">
+      <div class="scanlines"></div>
+      <div class="speedlines" style="background:repeating-linear-gradient(135deg,transparent,transparent 8px,#ff69b408 8px,#ff69b408 9px)"></div>
+      <div class="char-orb" style="background:radial-gradient(circle at 30% 30%,#ff69b4cc,#ff149388,#4a0025);box-shadow:0 0 40px #ff1493aa,0 0 80px #ff149344,0 0 120px #ff149322">
+        <span style="text-shadow:0 0 20px #ff69b4">A</span>
+        <div class="orbit-ring" style="border-color:#ff69b4"></div>
+      </div>
+      <h3 class="char-name" style="color:#ff69b4;text-shadow:0 0 20px #ff1493,0 0 40px #ff149366,3px 3px 0 #000">ALEX</h3>
+      <p class="char-role" style="color:#ff69b4">PROTAGONISTA · LÍDER</p>
+      <p class="char-quote">"El universo eligió a la chica equivocada para quedarse quieta."</p>
+    </div>
+    <div class="char-info">
+      <p class="alias" style="color:#ff69b4;text-shadow:0 0 10px #ff69b4">✦ LA ESTRELLA ROSA ✦</p>
+      <p class="desc">Rubia, hermosa y letal. Líder de las porristas de día, líder de las Guardianas cuando el destino lo exige. Su carisma esconde una guerrera implacable: cinturón negro en Tae Kwon Do, capaz de destrozar la oscuridad con una sonrisa y un roundhouse kick.</p>
+      <p class="powers-label">PODERES</p>
+      <div class="power-item" style="background:#ff69b40a;border:1px solid #ff69b433;border-left:3px solid #ff69b4">
+        <span class="icon" style="color:#ff69b4">⚡</span><span class="text">Tae Kwon Do Estelar</span>
+      </div>
+      <div class="power-item" style="background:#ff69b40a;border:1px solid #ff69b433;border-left:3px solid #ff69b4">
+        <span class="icon" style="color:#ff69b4">⚡</span><span class="text">Carisma Devastadora</span>
+      </div>
+      <div class="power-item" style="background:#ff69b40a;border:1px solid #ff69b433;border-left:3px solid #ff69b4">
+        <span class="icon" style="color:#ff69b4">⚡</span><span class="text">Liderazgo Absoluto</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SARAH -->
+  <div class="panel-row reverse" data-panel>
+    <div class="char-panel" style="background:linear-gradient(160deg,#2a0000,#4a0000,#1a0000);border:2px solid #ff222244;clip-path:polygon(0% 0%,100% 2%,97% 100%,3% 98%,0% 60%);box-shadow:0 0 40px #cc000044,0 0 80px #cc000022,0 20px 60px rgba(0,0,0,.8);transform:rotate(2deg)">
+      <div class="scanlines"></div>
+      <div class="speedlines" style="background:repeating-linear-gradient(45deg,transparent,transparent 8px,#ff222208 8px,#ff222208 9px)"></div>
+      <div class="char-orb" style="background:radial-gradient(circle at 30% 30%,#ff2222cc,#cc000088,#4a0000);box-shadow:0 0 40px #cc0000aa,0 0 80px #cc000044,0 0 120px #cc000022">
+        <span style="text-shadow:0 0 20px #ff2222">S</span>
+        <div class="orbit-ring" style="border-color:#ff2222"></div>
+      </div>
+      <h3 class="char-name" style="color:#ff2222;text-shadow:0 0 20px #cc0000,0 0 40px #cc000066,3px 3px 0 #000">SARAH</h3>
+      <p class="char-role" style="color:#ff2222">BRAWLER · FUERZA BRUTA</p>
+      <p class="char-quote">"¿Diplomacia? Mis puños son bastante diplomáticos."</p>
+    </div>
+    <div class="char-info">
+      <p class="alias" style="color:#ff2222;text-shadow:0 0 10px #ff2222">✦ PUÑOS DE TORMENTA ✦</p>
+      <p class="desc">Ruda, directa y sin filtro. Sarah no pide permiso para entrar en combate: invoca guantes de energía pura que pulverizan todo a su paso. Puede ajustarlos, hacerlos enormes, convertir sus puños en martillos cósmicos. Si hay un muro, ella lo atraviesa.</p>
+      <p class="powers-label">PODERES</p>
+      <div class="power-item" style="background:#ff22220a;border:1px solid #ff222233;border-left:3px solid #ff2222">
+        <span class="icon" style="color:#ff2222">⚡</span><span class="text">Guantes de Combate Cósmico</span>
+      </div>
+      <div class="power-item" style="background:#ff22220a;border:1px solid #ff222233;border-left:3px solid #ff2222">
+        <span class="icon" style="color:#ff2222">⚡</span><span class="text">Impacto Colosal</span>
+      </div>
+      <div class="power-item" style="background:#ff22220a;border:1px solid #ff222233;border-left:3px solid #ff2222">
+        <span class="icon" style="color:#ff2222">⚡</span><span class="text">Puño de Supernova</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- EVELYN -->
+  <div class="panel-row" data-panel>
+    <div class="char-panel" style="background:linear-gradient(160deg,#1a0033,#330066,#0d001a);border:2px solid #c77dff44;clip-path:polygon(3% 2%,97% 0%,100% 100%,0% 97%);box-shadow:0 0 40px #9b2dca44,0 0 80px #9b2dca22,0 20px 60px rgba(0,0,0,.8);transform:rotate(-2deg)">
+      <div class="scanlines"></div>
+      <div class="speedlines" style="background:repeating-linear-gradient(135deg,transparent,transparent 8px,#c77dff08 8px,#c77dff08 9px)"></div>
+      <div class="char-orb" style="background:radial-gradient(circle at 30% 30%,#c77dffcc,#9b2dca88,#330066);box-shadow:0 0 40px #9b2dcaaa,0 0 80px #9b2dca44,0 0 120px #9b2dca22">
+        <span style="text-shadow:0 0 20px #c77dff">E</span>
+        <div class="orbit-ring" style="border-color:#c77dff"></div>
+      </div>
+      <h3 class="char-name" style="color:#c77dff;text-shadow:0 0 20px #9b2dca,0 0 40px #9b2dca66,3px 3px 0 #000">EVELYN</h3>
+      <p class="char-role" style="color:#c77dff">TELEQUINÉTICA · ESTRATEGA</p>
+      <p class="char-quote">"Puedo sentir cada átomo en esta habitación. Y puedo mover cada uno."</p>
+    </div>
+    <div class="char-info">
+      <p class="alias" style="color:#c77dff;text-shadow:0 0 10px #c77dff">✦ MENTE ABSOLUTA ✦</p>
+      <p class="desc">29 años. Madre de dos. La más seria del equipo. Evelyn no necesita levantar un dedo: su telequinesis es tan poderosa que puede aplastar una nave espacial con el pensamiento. Maternal con las suyas, despiadada con el enemigo. La mente más peligrosa del cosmos.</p>
+      <p class="powers-label">PODERES</p>
+      <div class="power-item" style="background:#c77dff0a;border:1px solid #c77dff33;border-left:3px solid #c77dff">
+        <span class="icon" style="color:#c77dff">⚡</span><span class="text">Telequinesis Omega</span>
+      </div>
+      <div class="power-item" style="background:#c77dff0a;border:1px solid #c77dff33;border-left:3px solid #c77dff">
+        <span class="icon" style="color:#c77dff">⚡</span><span class="text">Barrera Psíquica</span>
+      </div>
+      <div class="power-item" style="background:#c77dff0a;border:1px solid #c77dff33;border-left:3px solid #c77dff">
+        <span class="icon" style="color:#c77dff">⚡</span><span class="text">Aplastamiento Gravitacional</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ELEN -->
+  <div class="panel-row reverse" data-panel>
+    <div class="char-panel" style="background:linear-gradient(160deg,#001a0d,#003320,#000d06);border:2px solid #50c87844;clip-path:polygon(0% 0%,100% 0%,98% 98%,2% 100%,0% 45%);box-shadow:0 0 40px #2ecc7144,0 0 80px #2ecc7122,0 20px 60px rgba(0,0,0,.8);transform:rotate(1deg)">
+      <div class="scanlines"></div>
+      <div class="speedlines" style="background:repeating-linear-gradient(45deg,transparent,transparent 8px,#50c87808 8px,#50c87808 9px)"></div>
+      <div class="char-orb" style="background:radial-gradient(circle at 30% 30%,#50c878cc,#2ecc7188,#003320);box-shadow:0 0 40px #2ecc71aa,0 0 80px #2ecc7144,0 0 120px #2ecc7122">
+        <span style="text-shadow:0 0 20px #50c878">E</span>
+        <div class="orbit-ring" style="border-color:#50c878"></div>
+      </div>
+      <h3 class="char-name" style="color:#50c878;text-shadow:0 0 20px #2ecc71,0 0 40px #2ecc7166,3px 3px 0 #000">ELEN</h3>
+      <p class="char-role" style="color:#50c878">SANADORA · VIENTO CÓSMICO</p>
+      <p class="char-quote">"Primero te curo. Después decido si me caes bien."</p>
+    </div>
+    <div class="char-info">
+      <p class="alias" style="color:#50c878;text-shadow:0 0 10px #50c878">✦ VIENTO ESMERALDA ✦</p>
+      <p class="desc">Pelo corto, mirada aguda, manos que curan. Estudiante de medicina por vocación, guardiana por destino. Elen manipula los vientos cósmicos para sanar heridas imposibles o desatar tormentas que arrasan campos de batalla. La calma antes del huracán.</p>
+      <p class="powers-label">PODERES</p>
+      <div class="power-item" style="background:#50c8780a;border:1px solid #50c87833;border-left:3px solid #50c878">
+        <span class="icon" style="color:#50c878">⚡</span><span class="text">Sanación Cósmica</span>
+      </div>
+      <div class="power-item" style="background:#50c8780a;border:1px solid #50c87833;border-left:3px solid #50c878">
+        <span class="icon" style="color:#50c878">⚡</span><span class="text">Viento Esmeralda</span>
+      </div>
+      <div class="power-item" style="background:#50c8780a;border:1px solid #50c87833;border-left:3px solid #50c878">
+        <span class="icon" style="color:#50c878">⚡</span><span class="text">Tormenta del Destino</span>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<!-- TEAM FINALE -->
+<section class="team-section">
+  <div class="team-box">
+    <p style="font-size:10px;letter-spacing:.4em;color:#ff0040;margin-bottom:20px;position:relative;z-index:1">✦ JUNTAS SON IMPARABLES ✦</p>
+    <h2 class="team-title">EL CAOS ES SU PODER</h2>
+
+    <div class="team-lineup">
+      <div class="team-member">
+        <div class="orb" style="background:radial-gradient(circle at 30% 30%,#ff69b4cc,#ff149366,#000);box-shadow:0 0 30px #ff149388,0 0 60px #ff149333">
+          <span>A</span>
+        </div>
+        <p class="name" style="color:#ff69b4">ALEX</p>
+        <p class="sub">La Estrella Rosa</p>
+      </div>
+      <div class="team-member">
+        <div class="orb" style="background:radial-gradient(circle at 30% 30%,#ff2222cc,#cc000066,#000);box-shadow:0 0 30px #cc000088,0 0 60px #cc000033">
+          <span>S</span>
+        </div>
+        <p class="name" style="color:#ff2222">SARAH</p>
+        <p class="sub">Puños de Tormenta</p>
+      </div>
+      <div class="team-member">
+        <div class="orb" style="background:radial-gradient(circle at 30% 30%,#c77dffcc,#9b2dca66,#000);box-shadow:0 0 30px #9b2dca88,0 0 60px #9b2dca33">
+          <span>E</span>
+        </div>
+        <p class="name" style="color:#c77dff">EVELYN</p>
+        <p class="sub">Mente Absoluta</p>
+      </div>
+      <div class="team-member">
+        <div class="orb" style="background:radial-gradient(circle at 30% 30%,#50c878cc,#2ecc7166,#000);box-shadow:0 0 30px #2ecc7188,0 0 60px #2ecc7133">
+          <span>E</span>
+        </div>
+        <p class="name" style="color:#50c878">ELEN</p>
+        <p class="sub">Viento Esmeralda</p>
+      </div>
+    </div>
+
+    <p style="color:#777;font-size:14px;line-height:1.8;max-width:500px;margin:0 auto 30px;position:relative;z-index:1">
+      Cuando la realidad se fractura y las estrellas gritan, ellas responden. No por obligación. Por destino.
+    </p>
+
+    <a href="#" class="back-btn">VOLVER AL INICIO</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="comic-footer">
+  <p>GUARDIANAS ESTELARES · COMIC · © 2026</p>
+</footer>
+
+<script>
+// Generate chaos particles
+(function(){
+  const container = document.getElementById('particles');
+  const colors = ['#ff0040','#ff69b4','#c77dff','#50c878','#ff2222','#0ff','#f0f'];
+  for(let i = 0; i < 50; i++){
+    const d = document.createElement('div');
+    d.className = 'chaos-particle';
+    const c = colors[Math.floor(Math.random()*colors.length)];
+    const s = Math.random()*4+1;
+    const type = Math.random()>.5 ? 'chaosFloatA' : 'chaosFloatB';
+    d.style.cssText = `left:${Math.random()*100}%;top:${Math.random()*100}%;width:${s}px;height:${s}px;background:${c};box-shadow:0 0 ${s*3}px ${c};animation:${type} ${Math.random()*6+3}s ${Math.random()*8}s ease-in-out infinite;${type==='chaosFloatB'?'transform:rotate(45deg);border-radius:0':'border-radius:50%'}`;
+    container.appendChild(d);
+  }
+})();
+
+// Scroll reveal for panels
+const observer = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting) e.target.classList.add('visible');
+  });
+},{threshold:0.15});
+document.querySelectorAll('[data-panel]').forEach(el=>observer.observe(el));
+</script>
+
+</body>
+</html>

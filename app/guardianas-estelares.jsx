@@ -648,21 +648,35 @@ export default function GuardianasEstelares() {
           </span>
         </div>
         <div style={{ display: "flex", gap: "32px" }}>
-          {["Historia", "Personajes", "Mundo", "Combate"].map((item) => (
+          {[
+            { label: "Historia", href: "#" },
+            { label: "Personajes", href: "#personajes" },
+            { label: "Mundo", href: "#" },
+            { label: "Combate", href: "#" },
+            { label: "Comic", href: "/comic" },
+          ].map((item) => (
             <a
-              key={item}
-              href="#"
+              key={item.label}
+              href={item.href}
               style={{
-                color: "#aaa",
+                color: item.label === "Comic" ? "#ff4444" : "#aaa",
                 textDecoration: "none",
                 fontSize: "12px",
                 letterSpacing: "0.12em",
-                transition: "color 0.2s",
+                transition: "all 0.3s",
+                fontWeight: item.label === "Comic" ? 800 : 400,
+                textShadow: item.label === "Comic" ? "0 0 15px #ff4444, 0 0 30px #ff000088" : "none",
               }}
-              onMouseEnter={(e) => (e.target.style.color = "#ff9ed8")}
-              onMouseLeave={(e) => (e.target.style.color = "#aaa")}
+              onMouseEnter={(e) => {
+                e.target.style.color = item.label === "Comic" ? "#ff6666" : "#ff9ed8";
+                if (item.label === "Comic") e.target.style.textShadow = "0 0 20px #ff4444, 0 0 40px #ff0000cc";
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.color = item.label === "Comic" ? "#ff4444" : "#aaa";
+                if (item.label === "Comic") e.target.style.textShadow = "0 0 15px #ff4444, 0 0 30px #ff000088";
+              }}
             >
-              {item.toUpperCase()}
+              {item.label.toUpperCase()}
             </a>
           ))}
         </div>
