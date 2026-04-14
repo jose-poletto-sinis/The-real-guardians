@@ -13,9 +13,11 @@ jobs:
 
     env:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: team_pYjcIbYGzZsmXaVhavHRvwWK
+      VERCEL_PROJECT_NAME: the-real-guardians
 
     steps:
-      - name: Checkout código
+      - name: Checkout codigo
         uses: actions/checkout@v4
 
       - name: Instalar Node.js
@@ -26,11 +28,33 @@ jobs:
       - name: Instalar Vercel CLI
         run: npm install -g vercel@latest
 
-      - name: Deploy a producción en Vercel
+      - name: Configurar proyecto Vercel
+        run: |
+          RESULT=$(curl -s -X POST "https://api.vercel.com/v10/projects?teamId=$VERCEL_ORG_ID" \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{\"name\":\"$VERCEL_PROJECT_NAME\",\"framework\":\"nextjs\"}")
+          PROJECT_ID=$(echo "$RESULT" | jq -r '.id // empty')
+          if [ -z "$PROJECT_ID" ]; then
+            RESULT=$(curl -s "https://api.vercel.com/v9/projects/$VERCEL_PROJECT_NAME?teamId=$VERCEL_ORG_ID" \
+              -H "Authorization: Bearer $VERCEL_TOKEN")
+            PROJECT_ID=$(echo "$RESULT" | jq -r '.id // empty')
+          fi
+          echo "Project ID: $PROJECT_ID"
+          rm -rf .vercel
+          mkdir -p .vercel
+          echo "{\"projectId\":\"$PROJECT_ID\",\"orgId\":\"$VERCEL_ORG_ID\"}" > .vercel/project.json
+
+      - name: Pull entorno de Vercel
+        run: vercel pull --yes --environment=production --token "$VERCEL_TOKEN"
+
+      - name: Build del proyecto
+        run: vercel build --prod --token "$VERCEL_TOKEN"
+
+      - name: Deploy a produccion en Vercel
         id: deploy
         run: |
-          rm -rf .vercel
-          url=$(vercel --prod --yes --token "$VERCEL_TOKEN")
+          url=$(vercel deploy --prebuilt --prod --token "$VERCEL_TOKEN")
           echo "deploy_url=$url" >> $GITHUB_OUTPUT
 
       - name: Mostrar URL del deploy
